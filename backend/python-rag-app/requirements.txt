@@ -9,3 +9,6 @@ transformers
 fastapi
 pydantic
 psycopg2
+HuggingFacePipeline
+uvicorn
+python-multipart

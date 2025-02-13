@@ -1,8 +1,8 @@
-**/ragenv/*
+**/venv/*
 **/__pycache__
 **/node_modules/*
 
-# compiled output
+# compiled output requirment
 **/dist
 **/build
 
