@@ -17,28 +17,34 @@ class DocumentService:
         self.engine = create_engine(self.connection_string)
         print(self.engine)
         
-        try:
-            with self.engine.connect() as connection:
-                print("Connection to PostgreSQL successful!")
-        except Exception as e:
-            print(f"Error connecting to PostgreSQL: {e}")
+        self.vector_store = PGVector(
+            collection_name=self.collection_name,
+            connection=self.engine,
+            embeddings=self.embeddings,
+        )
+        
+        # try:
+        #     with self.engine.connect() as connection:
+        #         print("Connection to PostgreSQL successful!")
+        # except Exception as e:
+        #     print(f"Error connecting to PostgreSQL: {e}")
 
         # Check if the table exists
-        inspector = inspect(self.engine)
-        if inspector.has_table(self.collection_name):
-            print(f"Table '{self.collection_name}' exists. Loading embeddings...")
-            self.vector_store = PGVector(
-                collection_name=self.collection_name,
-                connection=self.engine,
-                embeddings=self.embeddings,
-            )
-        else:
-            print(f"Table '{self.collection_name}' does not exist. Creating new table...")
-            self.vector_store = PGVector(
-                collection_name=self.collection_name,
-                connection=self.engine,
-                embeddings=self.embeddings,
-            )
+        # inspector = inspect(self.engine)
+        # if inspector.has_table(self.collection_name):
+        #     print(f"Table '{self.collection_name}' exists. Loading embeddings...")
+        #     self.vector_store = PGVector(
+        #         collection_name=self.collection_name,
+        #         connection=self.engine,
+        #         embeddings=self.embeddings,
+        #     )
+        # else:
+        #     print(f"Table '{self.collection_name}' does not exist. Creating new table...")
+            # self.vector_store = PGVector(
+            #     collection_name=self.collection_name,
+            #     connection=self.engine,
+            #     embeddings=self.embeddings,
+            # )
 
     def load_document(self, file_path: str):
         if file_path.endswith(".pdf"):

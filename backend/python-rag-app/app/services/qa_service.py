@@ -1,19 +1,20 @@
 from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFacePipeline
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from langchain.prompts import PromptTemplate
 
 class QAService:
     def __init__(self, vector_store):
         self.vector_store = vector_store
-        self.model_name = "google/flan-t5-base"
+        self.model_name = "bigscience/bloomz-7b1"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_name)
         self.pipe = pipeline(
-            "text2text-generation",
+            "text-generation",
             model=self.model,
             tokenizer=self.tokenizer,
             max_new_tokens=2000,
+            do_sample=True,
             temperature=0.7,
         )
         self.llm = HuggingFacePipeline(pipeline=self.pipe)
