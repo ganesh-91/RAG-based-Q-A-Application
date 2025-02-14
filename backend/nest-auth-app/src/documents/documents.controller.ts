@@ -1,0 +1,76 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  UseGuards,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { DocumentsService } from './documents.service';
+import { CreateDocumentDto } from './dto/create-document.dto';
+import { UpdateDocumentDto } from './dto/update-document.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { UserRole } from '../shared/constants';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
+import { multerConfig } from 'src/config/multer.config';
+
+@Controller('documents')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class DocumentsController {
+  constructor(private readonly documentsService: DocumentsService) {}
+
+  @Post('upload')
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  @UseInterceptors(FileInterceptor('file', multerConfig)) // Use FileInterceptor with the multer config
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File, // Access the uploaded file
+    @Body() createDocumentDto: CreateDocumentDto, // Access other form fields
+  ) {
+    // Save the file path and other details in the database
+    return this.documentsService.create(createDocumentDto, file);
+  }
+
+  @Post()
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  @UseInterceptors(FileInterceptor('file'))
+  async create(
+    @Body() createDocumentDto: CreateDocumentDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.documentsService.create(createDocumentDto, file);
+  }
+
+  @Get()
+  @Roles(UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER)
+  async findAll() {
+    return this.documentsService.findAll();
+  }
+
+  @Get(':id')
+  @Roles(UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER)
+  async findOne(@Param('id') id: string) {
+    return this.documentsService.findOne(+id);
+  }
+
+  @Put(':id')
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  async update(
+    @Param('id') id: string,
+    @Body() updateDocumentDto: UpdateDocumentDto,
+  ) {
+    return this.documentsService.update(+id, updateDocumentDto);
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.ADMIN)
+  async remove(@Param('id') id: string) {
+    return this.documentsService.remove(+id);
+  }
+}
