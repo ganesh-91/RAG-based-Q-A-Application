@@ -1,34 +1,39 @@
 from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFacePipeline
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
 from langchain.prompts import PromptTemplate
+import json
 
 class QAService:
     def __init__(self, vector_store):
         self.vector_store = vector_store
-        self.model_name = "bigscience/bloomz-7b1"
+        self.model_name = "google/flan-t5-xl"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_name)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
         self.pipe = pipeline(
             "text-generation",
             model=self.model,
             tokenizer=self.tokenizer,
             max_new_tokens=2000,
             do_sample=True,
-            temperature=0.7,
+            temperature=0.2,
         )
         self.llm = HuggingFacePipeline(pipeline=self.pipe)
         
 
     def ask_question(self, query: str):
         # Define a custom prompt template
-        prompt_template = """Use the following context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
+        prompt_template = """
+        You are an intelligent assistant helping with answering questions based on the provided context. Please ensure your responses are clear, concise, and conversational. Use a professional tone and provide as much relevant information as possible.
+        
         Context: {context}
-
+        
+        Given the context above, please answer the following question in a friendly and informative way:
+        
         Question: {question}
-
-        Answer:"""
+        
+        Answer:
+        """
         
         # Create a PromptTemplate object
         prompt = PromptTemplate(
@@ -47,4 +52,6 @@ class QAService:
 
         # Run the QA chain with the query
         result = qa_chain.invoke(query)
-        return {"answer": result}
+        formatted_json = json.dumps(result, indent=4)
+        print(formatted_json)
+        return {"answer": formatted_json}
