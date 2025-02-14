@@ -11,3 +11,7 @@ pydantic
 psycopg2
 uvicorn
 python-multipart
+
+openai
+pika
+aio_pika
