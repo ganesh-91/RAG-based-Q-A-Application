@@ -1,25 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { ClientProxy, Client, Transport } from '@nestjs/microservices';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 
 @Injectable()
-export class IngestionService {
-  @Client({
-    transport: Transport.TCP,
-    options: { host: 'python-backend', port: 3001 },
-  })
-  private client: ClientProxy;
+export class IngestionService implements OnModuleInit {
+  constructor(private readonly rabbitMQService: RabbitMQService) {}
 
-  async triggerIngestion(): Promise<string> {
-    const response = await this.client
-      .send('trigger_ingestion', {})
-      .toPromise();
-    return response;
+  onModuleInit() {
+    this.rabbitMQService.consumeMessages('ingestion-status', (message) => {
+      console.log('Received ingestion status:', message);
+    });
   }
 
-  async getIngestionStatus(): Promise<string> {
-    const response = await this.client
-      .send('get_ingestion_status', {})
-      .toPromise();
-    return response;
+  async getIngestionStatus() {
+    return 'Ingestion status: In progress';
   }
 }
