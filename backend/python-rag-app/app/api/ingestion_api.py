@@ -1,30 +1,17 @@
-# from fastapi import APIRouter, File, UploadFile, HTTPException
-# from app.services.ingestion_service import DocumentService
-# import os
-# import uuid
-
-# router = APIRouter()
-
-# document_service = DocumentService()
-
-# @router.post("/ingest")
-# async def ingest(file: UploadFile = File(...)):
-#     try:
-#         file_extension = os.path.splitext(file.filename)[1]
-#         file_path = f"uploads/{uuid.uuid4()}{file.filename}{file_extension}"
-#         os.makedirs("uploads", exist_ok=True)
-#         with open(file_path, "wb") as f:
-#             f.write(await file.read())
-#         return document_service.ingest_document(file_path)
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
 from fastapi import APIRouter
 from app.services.ingestion_service import IngestionService
+import chardet
+from config import INGESTION_QUEUE
+from app.utils.rabbitmq import RabbitMQ
 
 router = APIRouter()
 ingestion_service = IngestionService()
+rabbitmq_service = RabbitMQ(INGESTION_QUEUE)
 
 @router.post("/ingest")
 async def ingest_document(file_path: str):
-    return await ingestion_service.ingest_document(file_path)
+    message = {"doc_path": file_path}
+    ingestion_service.ingest_document(file_path)
+    rabbitmq_service.send_message(message, INGESTION_QUEUE) # Send message to RabbitMQ
+    return {"message": "Ingestion task added to queue."} # Return immediately
+    # return await ingestion_service.ingest_document(file_path)
