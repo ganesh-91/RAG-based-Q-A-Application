@@ -5,10 +5,10 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { DocumentsModule } from './documents/documents.module';
 import { IngestionModule } from './ingestion/ingestion.module';
-import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import { Document } from './documents/entities/document.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { KafkaService } from './utils/kafka';
 
 @Module({
   imports: [
@@ -31,7 +31,7 @@ import { JwtModule } from '@nestjs/jwt';
     AuthModule,
     DocumentsModule,
     IngestionModule,
-    RabbitMQModule,
   ],
+  providers: [KafkaService],
 })
 export class AppModule {}

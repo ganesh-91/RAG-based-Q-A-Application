@@ -1,17 +1,30 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Document } from '../documents/entities/document.entity';
+import { KafkaService } from 'src/utils/kafka';
 
 @Injectable()
-export class IngestionService implements OnModuleInit {
-  constructor(private readonly rabbitMQService: RabbitMQService) {}
+export class IngestionService {
+  constructor(
+    @InjectRepository(Document)
+    private documentRepository: Repository<Document>,
+    private kafkaService: KafkaService, // Use KafkaService instead of RabbitMQService
+  ) {}
 
-  onModuleInit() {
-    this.rabbitMQService.consumeMessages('ingestion-status', (message) => {
-      console.log('Received ingestion status:', message);
-    });
+  async triggerIngestion(filePath: string) {
+    // Simulate ingestion process
+    console.log(`Ingesting document from path: ${filePath}`);
+    // await this.kafkaService.sendMessage('ingestion-trigger', 'Ingestion triggered');
+
+    // Send a message to Kafka
+    await this.kafkaService.sendMessage('ingestion-trigger', filePath);
+
+    return { message: 'Ingestion triggered successfully' };
   }
 
   async getIngestionStatus() {
-    return 'Ingestion status: In progress';
+    // Simulate getting ingestion status
+    return { status: 'Ingestion in progress' };
   }
 }
