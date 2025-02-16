@@ -9,9 +9,8 @@ document_service = DocumentService()
 
 @router.post("/ingest")
 async def ingest_document(path: str):
-    print('path',path)
     try:
-        document_service.ingest_docs(path, 'path.pdf')
+        await document_service.ingest_docs(path, 'path.pdf')
         return {"message": "Document ingested successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

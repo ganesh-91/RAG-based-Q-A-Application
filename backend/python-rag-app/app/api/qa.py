@@ -1,5 +1,4 @@
 # app/api/search.py
-
 from typing import List
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import SearchRequest, DocumentResponse

@@ -1,10 +1,13 @@
 import json
+import logging
 from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
 from app.config.settings import settings
 from app.services.vectorstore_service import get_vectorstore
 from langchain.prompts import PromptTemplate
+
+logger = logging.getLogger(__name__)
 
 class QAService:
     def __init__(self):
@@ -25,6 +28,7 @@ class QAService:
         self.llm = HuggingFacePipeline(pipeline=self.pipe)
 
     def ask_question(self, query: str):
+        logger.info(f"[ENTRY] QAService ask_question")
         qa_chain = RetrievalQA.from_chain_type(
             llm=self.llm,
             chain_type="stuff",
@@ -32,4 +36,5 @@ class QAService:
             input_key="question",
         )
         result = qa_chain.invoke(query)
+        logger.info(f"[EXIT] QAService ask_question")
         return {"answer":  result}

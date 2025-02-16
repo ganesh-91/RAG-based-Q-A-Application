@@ -8,3 +8,4 @@ psycopg2-binary
 python-multipart
 langchain-community
 langchain_unstructured
+confluent-kafka

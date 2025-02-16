@@ -19,6 +19,7 @@ embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mp
 vectorstore = None
 
 def create_vectorstore_langchain() -> FAISS:
+    logger.info(f"[ENTRY] VectorService create_vectorstore_langchain")
     """
     Create a new FAISS vector store or load an existing one.
     """
@@ -34,8 +35,11 @@ def create_vectorstore_langchain() -> FAISS:
     except Exception as e:
         logger.error(f"Failed to create or load vector store: {e}")
         raise
+    finally:
+        logger.info(f"[EXIT] VectorService create_vectorstore_langchain")
 
 def initialize_vectorstore(settings):
+    logger.info(f"[ENTRY] VectorService initialize_vectorstore")
     if not os.path.exists(settings.VECTORSTORE_PATH):
         os.makedirs(settings.VECTORSTORE_PATH)
         
@@ -49,6 +53,7 @@ def initialize_vectorstore(settings):
         return vectorstore
     
     # If it exists, load it
+    logger.info(f"[EXIT] VectorService initialize_vectorstore")
     return FAISS.load_local(settings.VECTORSTORE_PATH, embedding_model, allow_dangerous_deserialization=True)
 
 def get_vectorstore() -> FAISS:
@@ -61,6 +66,7 @@ def get_vectorstore() -> FAISS:
     return vectorstore
 
 def add_documents_to_vectorstore(documents: List[Document]) -> None:
+    logger.info(f"[ENTRY] VectorService add_documents_to_vectorstore")
     """
     Add documents to the vector store.
     """
@@ -72,8 +78,11 @@ def add_documents_to_vectorstore(documents: List[Document]) -> None:
     except Exception as e:
         logger.error(f"Failed to add documents to vector store: {e}")
         raise
+    finally:
+        logger.info(f"[EXIT] VectorService add_documents_to_vectorstore")
 
 def get_docs_vectorstore_langchain() -> List[str]:
+    logger.info(f"[ENTRY] VectorService get_docs_vectorstore_langchain")
     """
     Retrieve the list of document filenames stored in the vector store.
     """
@@ -85,8 +94,11 @@ def get_docs_vectorstore_langchain() -> List[str]:
     except Exception as e:
         logger.error(f"Failed to retrieve documents from vector store: {e}")
         return []
+    finally:
+        logger.info(f"[EXIT] VectorService get_docs_vectorstore_langchain")
 
 def del_docs_vectorstore_langchain(filenames: List[str]) -> bool:
+    logger.info(f"[ENTRY] VectorService del_docs_vectorstore_langchain")
     """
     Delete documents from the vector store based on filenames.
     """
@@ -108,3 +120,5 @@ def del_docs_vectorstore_langchain(filenames: List[str]) -> bool:
     except Exception as e:
         logger.error(f"Failed to delete documents from vector store: {e}")
         return False
+    finally:
+        logger.info(f"[EXIT] VectorService del_docs_vectorstore_langchain")
