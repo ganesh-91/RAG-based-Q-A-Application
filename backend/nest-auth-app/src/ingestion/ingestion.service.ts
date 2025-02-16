@@ -18,7 +18,8 @@ export class IngestionService {
     // await this.kafkaService.sendMessage('ingestion-trigger', 'Ingestion triggered');
 
     // Send a message to Kafka
-    await this.kafkaService.sendMessage('ingestion-trigger', filePath);
+    // await this.kafkaService.sendMessage('ingestion-trigger', filePath);
+    await this.kafkaService.triggerIngestion('ganesh_khaire_resumeR.pdf')
 
     return { message: 'Ingestion triggered successfully' };
   }
