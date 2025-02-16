@@ -38,7 +38,7 @@ class DocumentService:
         return loader.load()
 
     async def ingest_docs(self, filepath: str, filename: str) -> bool:
-        logger.info(f"[ENTRY] DocumentService ingest_docs")
+        logger.info(f"[ENTRY] DocumentService ingest_docs {filepath}")
         if not filename.endswith((".docx", ".pdf", ".doc")):
             raise ValueError(f"{filename} is not a valid doc, docx or PDF")
 
@@ -76,4 +76,4 @@ class DocumentService:
         except Exception as e:
             logger.error(f"Vectorstore not initialized. Error details: {e}")
         logger.info(f"[EXIT] DocumentService delete_documents")
-        return False
+        return True

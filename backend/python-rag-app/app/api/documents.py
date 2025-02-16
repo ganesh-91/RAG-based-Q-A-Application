@@ -18,3 +18,7 @@ async def ingest_document(path: str):
 @router.get("/documents")
 async def get_documents():
     return document_service.get_documents()
+
+@router.delete("/documents")
+async def delete_documents(path: str):
+    return document_service.delete_documents([path])
