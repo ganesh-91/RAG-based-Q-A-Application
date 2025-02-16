@@ -1,19 +1,33 @@
+import { BadRequestException } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import * as path from 'path';
 
 export const multerConfig = {
   storage: diskStorage({
-    destination: './uploads', // Files will be saved in the 'uploads' folder
+    destination: (req, file, callback) => {
+      // Define the path to the parent directory of the root folder
+      const uploadPath = path.join(__dirname, '../../../upload');
+      callback(null, uploadPath);
+    },
     filename: (req, file, callback) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      const ext = extname(file.originalname);
-      const filename = `${file.fieldname}-${uniqueSuffix}${ext}`;
+      const filename = `${file.originalname}`;
       callback(null, filename);
     },
   }),
   fileFilter: (req, file, callback) => {
-    // Add file filter logic here if needed (e.g., allow only images)
-    callback(null, true);
+    // Allow only doc, docx, and pdf files
+    const allowedExtensions = ['.doc', '.docx', '.pdf'];
+    const fileExt = extname(file.originalname).toLowerCase();
+
+    if (allowedExtensions.includes(fileExt)) {
+      callback(null, true); // Accept file
+    } else {
+      callback(
+        new BadRequestException('Only .doc, .docx, and .pdf files are allowed!'),
+        false,
+      ); // Reject file
+    }
   },
   limits: {
     fileSize: 1024 * 1024 * 5, // Limit file size to 5MB

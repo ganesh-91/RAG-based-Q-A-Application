@@ -37,16 +37,16 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
         await this.consumer.disconnect();
     }
 
-    async triggerIngestion(filepath: string) {
+    async triggerIngestion(fileName: string) {
         await this.producer.send({
             topic: 'ingestion-trigger',
             messages: [
                 {
                     key: 'document-ingestion',
-                    value: filepath, // Send the file path as the message value
+                    value: fileName, // Send the file path as the message value
                 },
             ],
         });
-        console.log(`Triggered ingestion for file: ${filepath}`);
+        console.log(`Triggered ingestion for file: ${fileName}`);
     }
 }

@@ -10,15 +10,15 @@ export class DocumentsService {
   constructor(
     @InjectRepository(Document)
     private documentsRepository: Repository<Document>,
-  ) {}
+  ) { }
 
   async create(
-    createDocumentDto: CreateDocumentDto,
     file: Express.Multer.File,
   ): Promise<Document> {
+    console.log('[file]', file)
     const document = this.documentsRepository.create({
-      ...createDocumentDto,
       filePath: file.path, // Save the file path
+      title: file.filename
     });
     return this.documentsRepository.save(document);
   }

@@ -24,27 +24,16 @@ import { multerConfig } from 'src/config/multer.config';
 @Controller('documents')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+  constructor(private readonly documentsService: DocumentsService) { }
 
   @Post('upload')
-  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  // @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @UseInterceptors(FileInterceptor('file', multerConfig)) // Use FileInterceptor with the multer config
   async uploadFile(
     @UploadedFile() file: Express.Multer.File, // Access the uploaded file
-    @Body() createDocumentDto: CreateDocumentDto, // Access other form fields
   ) {
     // Save the file path and other details in the database
-    return this.documentsService.create(createDocumentDto, file);
-  }
-
-  @Post()
-  @Roles(UserRole.ADMIN, UserRole.EDITOR)
-  @UseInterceptors(FileInterceptor('file'))
-  async create(
-    @Body() createDocumentDto: CreateDocumentDto,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    return this.documentsService.create(createDocumentDto, file);
+    return this.documentsService.create(file);
   }
 
   @Get()
