@@ -1,33 +1,30 @@
 from langchain.chains import RetrievalQA
-from langchain.vectorstores import FAISS
-from langchain.embeddings import OpenAIEmbeddings
-from app.utils.database import SessionLocal, Document
-from langchain_community.llms import OpenAI
-import os
-
-from dotenv import load_dotenv
-
-load_dotenv()
+from langchain_community.llms import HuggingFacePipeline
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
+from app.config.settings import settings
 
 class QAService:
-    def __init__(self):
-        self.embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
-
-    def answer_question(self, question: str, document_ids: list[int]):
-        # Load documents from database
-        db = SessionLocal()
-        documents = db.query(Document).filter(Document.id.in_(document_ids)).all()
-        db.close()
-
-        # Generate embeddings and create a FAISS vector store
-        texts = [doc.file_path for doc in documents]  # Use file_path as text for simplicity
-        metadatas = [{"id": doc.id} for doc in documents]
-        vector_store = FAISS.from_texts(texts, self.embeddings, metadatas=metadatas)
-
-        # Perform Q&A
-        qa_chain = RetrievalQA.from_chain_type(
-            llm=OpenAI(openai_api_key=os.getenv("OPENAI_API_KEY")),
-            chain_type="stuff",
-            retriever=vector_store.as_retriever(),
+    def __init__(self, vector_store):
+        self.vector_store = vector_store
+        self.model_name = "google/flan-t5-base"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+        self.pipe = pipeline(
+            "text2text-generation",
+            model=self.model,
+            tokenizer=self.tokenizer,
+            max_new_tokens=2000,
+            do_sample=True,
+            temperature=settings.RETRIEVER_SCORE_THRESHOLD,
         )
-        return qa_chain.run(question)
+        self.llm = HuggingFacePipeline(pipeline=self.pipe)
+
+    def ask_question(self, query: str):
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=self.llm,
+            chain_type="stuff",
+            retriever=self.vector_store.as_retriever(),
+            input_key="question",
+        )
+        result = qa_chain.run(query)
+        return {"answer": result}
