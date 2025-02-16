@@ -12,14 +12,19 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from app.config.settings import settings
-from app.services.vectorstore_service import get_vectorstore, create_vectorstore_langchain, del_docs_vectorstore_langchain, get_docs_vectorstore_langchain
+from app.services.vectorstore_service import get_vectorstore, create_vectorstore_langchain, del_docs_vectorstore_langchain, get_docs_vectorstore_langchain, initialize_vectorstore
 
 logger = logging.getLogger(__name__)
 
 class DocumentService:
     def __init__(self):
-        # Initialize the vector store
-        self.vectorstore = create_vectorstore_langchain()
+
+        try:
+            self.vectorstore = create_vectorstore_langchain()
+        except RuntimeError as e:
+            print(f"Error loading vectorstore: {e}")
+            # Initialize a new vectorstore
+            self.vectorstore = initialize_vectorstore(settings)
 
     def load_document(self, file_path: str):
         if file_path.endswith(".pdf"):
@@ -55,15 +60,6 @@ class DocumentService:
         except Exception as e:
             logger.error(f"Vectorstore not initialized. Error details: {e}")
         return []
-
-    # def select_documents(self, selected_documents: List[str]) -> None:
-    #     """
-    #     Select specific documents for search.
-
-    #     Args:
-    #         selected_documents (List[str]): List of document filenames to consider for search.
-    #     """
-    #     self.selected_documents = selected_documents
 
     def delete_documents(self, filenames: List[str]) -> bool:
         try:

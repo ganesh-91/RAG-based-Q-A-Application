@@ -13,7 +13,7 @@ from app.config.settings import settings
 logger = logging.getLogger(__name__)
 
 # Initialize the embedding model
-embedding_model = HuggingFaceEmbeddings('sentence-transformers/all-mpnet-base-v2')
+embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
 # Global vector store instance
 vectorstore = None
@@ -34,6 +34,22 @@ def create_vectorstore_langchain() -> FAISS:
     except Exception as e:
         logger.error(f"Failed to create or load vector store: {e}")
         raise
+
+def initialize_vectorstore(settings):
+    if not os.path.exists(settings.VECTORSTORE_PATH):
+        os.makedirs(settings.VECTORSTORE_PATH)
+        
+    # Create an empty vectorstore if it doesn't exist
+    if not os.path.exists(os.path.join(settings.VECTORSTORE_PATH, "index.faiss")):
+        # Create with some initial data
+        texts = ["Initial document to create vectorstore"]
+        vectorstore = FAISS.from_texts(texts, embedding_model)
+        # Save it
+        vectorstore.save_local(settings.VECTORSTORE_PATH)
+        return vectorstore
+    
+    # If it exists, load it
+    return FAISS.load_local(settings.VECTORSTORE_PATH, embedding_model, allow_dangerous_deserialization=True)
 
 def get_vectorstore() -> FAISS:
     """

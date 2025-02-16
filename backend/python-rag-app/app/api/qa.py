@@ -1,7 +1,7 @@
 # app/api/search.py
 
 from typing import List
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.models.schemas import SearchRequest, DocumentResponse
 from app.services.document_service import DocumentService
 from app.services.qa_service import QAService
@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 router = APIRouter()
 document_service = DocumentService()
-qa_service = QAService(document_service.vectorstore)
+qa_service = QAService()
 
 class QueryModel(BaseModel):
     query: str
