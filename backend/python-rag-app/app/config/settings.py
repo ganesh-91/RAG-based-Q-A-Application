@@ -7,5 +7,6 @@ class Settings:
     KAFKA_BROKER = "localhost:9092"  # Kafka broker address
     KAFKA_INGEST_TOPIC = "ingestion-trigger"  # Topic for document ingestion requests
     KAFKA_COMPLETED_TOPIC = "ingestion-completed"  # Topic for ingestion completion messages
+    DB_URL="postgresql://postgres:1234@localhost:5432/rag_db"
 
 settings = Settings()

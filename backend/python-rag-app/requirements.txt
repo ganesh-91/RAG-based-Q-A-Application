@@ -6,6 +6,12 @@ unstructured
 numpy
 psycopg2-binary
 python-multipart
-langchain-community
 langchain_unstructured
 confluent-kafka
+
+sentence-transformers
+pgvector
+asyncpg
+transformers
+torch
+huggingface-hub
