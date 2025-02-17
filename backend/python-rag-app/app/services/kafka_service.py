@@ -59,7 +59,7 @@ class KafkaService:
 
                 # Trigger document ingestion
                 document_service = DocumentService()
-                asyncio.run(document_service.ingest_docs(filepath, filename))
+                asyncio.run(document_service.ingest_document(filepath, filename))
 
                 # Send ingestion completed message
                 self.producer.produce(

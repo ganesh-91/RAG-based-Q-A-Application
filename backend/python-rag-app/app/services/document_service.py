@@ -1,79 +1,89 @@
-# services/document_service.py
-
 import os
-import logging
-from typing import List, Dict, Any
-
-from langchain.vectorstores import FAISS
-from langchain.schema import Document
-
-from langchain_unstructured import UnstructuredLoader
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_unstructured import UnstructuredLoader
+from langchain_postgres import PGVector
+from sqlalchemy import create_engine, inspect
+from dotenv import load_dotenv
+from typing import List, Dict, Optional, Any
 
-from app.config.settings import settings
-from app.services.vectorstore_service import get_vectorstore, create_vectorstore_langchain, del_docs_vectorstore_langchain, get_docs_vectorstore_langchain, initialize_vectorstore
-
-logger = logging.getLogger(__name__)
+load_dotenv()
 
 class DocumentService:
     def __init__(self):
-
+        self.embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        self.connection_string = os.getenv("DATABASE_URL")
+        self.collection_name = "document_embeddings"
+        self.engine = create_engine(self.connection_string)
+        print(self.engine)
+        
         try:
-            self.vectorstore = create_vectorstore_langchain()
-        except RuntimeError as e:
-            print(f"Error loading vectorstore: {e}")
-            # Initialize a new vectorstore
-            self.vectorstore = initialize_vectorstore(settings)
+            with self.engine.connect() as connection:
+                print("Connection to PostgreSQL successful!")
+        except Exception as e:
+            print(f"Error connecting to PostgreSQL: {e}")
+
+        # Check if the table exists
+        inspector = inspect(self.engine)
+        if inspector.has_table(self.collection_name):
+            print(f"Table '{self.collection_name}' exists. Loading embeddings...")
+            self.vector_store = PGVector(
+                collection_name=self.collection_name,
+                connection=self.engine,
+                embeddings=self.embeddings,
+            )
+        else:
+            print(f"Table '{self.collection_name}' does not exist. Creating new table...")
+            self.vector_store = PGVector(
+                collection_name=self.collection_name,
+                connection=self.engine,
+                embeddings=self.embeddings,
+            )
 
     def load_document(self, file_path: str):
-        logger.info(f"[ENTRY] DocumentService load_document")
         if file_path.endswith(".pdf"):
             loader = PyPDFLoader(file_path)
         elif file_path.endswith(".doc") or file_path.endswith(".docx"):
             loader = UnstructuredLoader(file_path)
         else:
             raise ValueError("Unsupported file format")
-        logger.info(f"[EXIT] DocumentService load_document")
         return loader.load()
 
-    async def ingest_docs(self, filepath: str, filename: str) -> bool:
-        logger.info(f"[ENTRY] DocumentService ingest_docs {filepath}")
-        if not filename.endswith((".docx", ".pdf", ".doc")):
-            raise ValueError(f"{filename} is not a valid doc, docx or PDF")
-
+    def ingest_document(self, file_path: str, filename: str):
+        # document_service.ingest_document(filepath, filename)
         try:
-            raw_documents = self.load_document(filepath)
-            if raw_documents:
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-                documents = text_splitter.split_documents(raw_documents)
-                vs = get_vectorstore() 
-                vs.add_documents(documents)
-                vs.save_local(settings.VECTORSTORE_PATH)
-            else:
-                logger.warning("No documents available to process!")
-        except Exception as e:
-            logger.error(f"Failed to ingest document due to exception {e}")
-            raise ValueError("Failed to upload document. Please upload an unstructured text document.")
-        logger.info(f"[EXIT] DocumentService ingest_docs")
-        return True
+            documents = self.load_document(file_path)
+            if not documents:
+                return {"message": "No documents available to process"}
 
-    def get_documents(self) -> List[str]:
-        logger.info(f"[ENTRY] DocumentService get_documents")
-        try:
-            if self.vectorstore:
-                return get_docs_vectorstore_langchain()
-        except Exception as e:
-            logger.error(f"Vectorstore not initialized. Error details: {e}")
-        logger.info(f"[EXIT] DocumentService get_documents")
-        return []
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
+            chunks = text_splitter.split_documents(documents)
 
-    def delete_documents(self, filenames: List[str]) -> bool:
-        logger.info(f"[ENTRY] DocumentService delete_documents")
-        try:
-            if self.vectorstore:
-                return del_docs_vectorstore_langchain(filenames)
+            for chunk in chunks:
+                embeddings = self.embedding_model.embed_documents([chunk.page_content])
+
+                self._store_embeddings_in_db(filename, chunk.page_content, embeddings[0])
+
+            self.vector_store.add_documents(chunks)
+
+            return {"message": "File ingested successfully and embeddings stored in the database"}
         except Exception as e:
-            logger.error(f"Vectorstore not initialized. Error details: {e}")
-        logger.info(f"[EXIT] DocumentService delete_documents")
-        return True
+            logger.error(f"Failed to ingest document due to exception: {e}")
+            return {"message": "Failed to ingest document", "error": str(e)}
+
+    def _store_embeddings_in_db(self, filename: str, content: str, embeddings: List[float]):
+        try:
+            query = """
+                INSERT INTO document_embeddings (filename, content, embedding)
+                VALUES (%s, %s, %s)
+            """
+            self.db_cursor.execute(query, (filename, content, embeddings))
+            self.db_connection.commit()
+            logger.info(f"Embeddings for {filename} stored in the database.")
+        except Exception as e:
+            logger.error(f"Failed to store embeddings in the database: {e}")
+            raise
+
+if __name__ == "__main__":
+    document_service = DocumentService()
