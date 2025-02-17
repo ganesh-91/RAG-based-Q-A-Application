@@ -1,16 +1,19 @@
+# app/api/qa.py
 from fastapi import APIRouter, HTTPException
-from app.models.document_model import Question
+from app.services.rag_service import RagService
 from app.services.document_service import DocumentService
-from app.services.qa_service import QAService
 
 router = APIRouter()
-document_service = DocumentService()
-qa_service = QAService(document_service.vector_store)
 
-@router.post("/ask/")
+document_service = DocumentService()
+rag_service = RagService(document_service.vector_store)
+
+document_service = DocumentService()
+
+@router.post("/ask")
 async def ask_question(question: str):
     try:
-        answer = await qa_service.answer_question(question)
+        answer = rag_service.answer_question(question)
         return {"answer": answer}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

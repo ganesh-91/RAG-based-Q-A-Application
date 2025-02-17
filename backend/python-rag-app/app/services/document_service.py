@@ -1,5 +1,6 @@
 import os
 import logging
+import json
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -8,8 +9,10 @@ from langchain_postgres import PGVector
 from sqlalchemy import create_engine, inspect
 from dotenv import load_dotenv
 from typing import List, Dict, Optional, Any
-from app.config.settings import settings
+from app.utils.config import Config
 from sentence_transformers import SentenceTransformer
+
+import psycopg2
 
 logger = logging.getLogger(__name__)
 
@@ -18,36 +21,22 @@ load_dotenv()
 
 class DocumentService:
     def __init__(self):
-        self.embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        self.model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        self.model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
+        # self.model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+        self.connection_string = Config.POSTGRES_URL
+        self.db_connection = psycopg2.connect(self.connection_string)  # Pass db config like 'dbname', 'user', 'password', 'host', etc.
+        self.db_cursor = self.db_connection.cursor()
         
-        self.connection_string = settings.DB_URL
-        self.collection_name = "document_embeddings"
         self.engine = create_engine(self.connection_string)
-        print(self.engine)
-        
-        try:
-            with self.engine.connect() as connection:
-                print("Connection to PostgreSQL successful!")
-        except Exception as e:
-            print(f"Error connecting to PostgreSQL: {e}")
 
-        # Check if the table exists
-        inspector = inspect(self.engine)
-        if inspector.has_table(self.collection_name):
-            print(f"Table '{self.collection_name}' exists. Loading embeddings...")
-            self.vector_store = PGVector(
-                collection_name=self.collection_name,
-                connection=self.engine,
-                embeddings=self.embeddings,
-            )
-        else:
-            print(f"Table '{self.collection_name}' does not exist. Creating new table...")
-            self.vector_store = PGVector(
-                collection_name=self.collection_name,
-                connection=self.engine,
-                embeddings=self.embeddings,
-            )
+        self.collection_name = "document_embeddings"
+        self.vector_store = PGVector(
+            collection_name=self.collection_name,
+            connection=self.engine,
+            embeddings=self.model,
+        )
+
+        print(self.engine)
 
     def load_document(self, file_path: str):
         if file_path.endswith(".pdf"):
@@ -58,11 +47,11 @@ class DocumentService:
             raise ValueError("Unsupported file format")
         return loader.load()
 
-    async def ingest_document(self, file_path: str, filename: str):
+    def ingest_document(self, file_path: str):
         logger.info(f"E[ENTRY]")
-        # document_service.ingest_document(filepath, filename)
         try:
             documents = self.load_document(file_path)
+            filename = file_path.split('/')[-1]
             if not documents:
                 return {"message": "No document available to process"}
             
@@ -70,38 +59,28 @@ class DocumentService:
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
             chunks = text_splitter.split_documents(documents)
             
-            # Get text content from chunks
-            chunk_texts = [chunk.page_content for chunk in chunks]
+            # Generate embeddings for each chunk
+            embeddings = []
+            for chunk in chunks:
+                embedding = self.model.embed_query(chunk.page_content)
+                embeddings.append(embedding)
             
-            # Create embeddings for each chunk
-            embeddings = self.model.encode(chunk_texts)
-            
-            # Store each chunk and its embedding in the database
-            for chunk_text, embedding in zip(chunk_texts, embeddings):
-                self._store_embeddings_in_db(filename, chunk_text, embedding.tolist())
-
-            # Add to vector store
-            self.vector_store.add_documents(chunks)
+            # Store embeddings in the database
+            for embedding in embeddings:
+                self._store_embeddings_in_db(filename, embedding)
 
             return {"message": "File ingested successfully and embeddings stored in the database"}
         except Exception as e:
             logger.error(f"Failed to ingest document due to exception: {e}")
             return {"message": "Failed to ingest document", "error": str(e)}
 
-    def _store_embeddings_in_db(self, filename: str, content: str, embedding: List[float]):
+    def _store_embeddings_in_db(self, filename: str, embedding: List[float]):
         try:
             query = """
-                INSERT INTO document_embeddings (filename, content, embedding)
-                VALUES (%s, %s, %s)
+                INSERT INTO document_embeddings (filename, embedding)
+                VALUES (%s, %s)
             """
-            # Convert embedding to a format suitable for your database
-            # For PostgreSQL with pgvector, you might need to convert to a specific format
-            # For regular PostgreSQL, you might want to store it as JSON or text
-            self.db_cursor.execute(query, (
-                filename, 
-                content, 
-                json.dumps(embedding)  # or use appropriate conversion for your database
-            ))
+            self.db_cursor.execute(query, (filename, embedding))
             self.db_connection.commit()
             logger.info(f"Embedding stored in database for chunk from {filename}")
         except Exception as e:

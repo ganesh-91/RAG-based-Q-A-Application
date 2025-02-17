@@ -1,17 +1,21 @@
 # main.py
 
 import logging
+# app/main.py
 from fastapi import FastAPI
-from app.api.document_api import router as document_router
-from app.api.qa_api import router as qa_router
-from app.services.kafka_service import KafkaService
+from app.api.document_ingestion import router as ingestion_router
+from app.api.qa import router as qa_router
+from app.api.document_selection import router as selection_router
 
-logger = logging.getLogger(__name__)
 app = FastAPI()
 
-app.include_router(document_router, prefix="/document")
-app.include_router(qa_router, prefix="/qa")
+app.include_router(ingestion_router, prefix="/api/v1/ingest", tags=["ingestion"])
+app.include_router(qa_router, prefix="/api/v1/qa", tags=["qa"])
+app.include_router(selection_router, prefix="/api/v1/select", tags=["selection"])
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 # Initialize Kafka service
 # kafka_service = KafkaService()
@@ -33,6 +37,6 @@ app.include_router(qa_router, prefix="/qa")
 #     kafka_service.stop()
 #     logger.info("Kafka service stopped.")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
