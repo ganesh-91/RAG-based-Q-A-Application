@@ -3,11 +3,12 @@ import { IngestionService } from './ingestion.service';
 import { IngestionController } from './ingestion.controller';
 import { KafkaService } from 'src/utils/kafka';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Document } from 'src/documents/entities/document.entity';
+import { Ingestion } from './entities/ingestion.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Document])],
+  imports: [TypeOrmModule.forFeature([Ingestion])],
   controllers: [IngestionController],
   providers: [IngestionService, KafkaService],
+  exports: [IngestionService],
 })
 export class IngestionModule {}

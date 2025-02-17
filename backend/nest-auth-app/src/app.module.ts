@@ -9,6 +9,7 @@ import { Document } from './documents/entities/document.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { KafkaService } from './utils/kafka';
+import { Ingestion } from './ingestion/entities/ingestion.entity';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { KafkaService } from './utils/kafka';
       username: process.env.DB_USERNAME,
       password: `${process.env.DB_PASSWORD}`,
       database: process.env.DB_DATABASE,
-      entities: [User, Document],
+      entities: [User, Document, Ingestion],
       synchronize: true,
       ssl: false,
     }),
