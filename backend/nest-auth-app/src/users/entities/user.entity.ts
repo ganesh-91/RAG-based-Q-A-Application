@@ -12,5 +12,5 @@ export class User {
   password: string;
 
   @Column()
-  role: "admin" | "editor" | "viewer"
+  role: 'ADMIN' | 'EDITOR' | 'VIEWER';
 }

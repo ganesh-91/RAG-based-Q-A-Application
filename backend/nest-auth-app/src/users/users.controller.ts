@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -27,27 +28,28 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  // @Get()
-  // @Roles(UserRole.ADMIN)
-  // async findAll() {
-  //   return this.usersService.findAll();
-  // }
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.ADMIN)
+  async findAll(@Req() req: Request & { user: any }) {
+    return this.usersService.findAll(req.user.userId);
+  }
 
-  // @Get(':id')
-  // @Roles(UserRole.ADMIN)
-  // async findOne(@Param('id') id: string) {
-  //   return this.usersService.findOne(+id);
-  // }
+  @Get(':id')
+  @Roles(UserRole.ADMIN)
+  async findOne(@Param('id') id: string) {
+    return this.usersService.findOne(+id);
+  }
 
-  // @Put(':id')
-  // @Roles(UserRole.ADMIN)
-  // async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
+  @Put(':id')
+  @Roles(UserRole.ADMIN)
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
+  }
 
-  // @Delete(':id')
-  // @Roles(UserRole.ADMIN)
-  // async remove(@Param('id') id: string) {
-  //   return this.usersService.remove(+id);
-  // }
+  @Delete(':id')
+  @Roles(UserRole.ADMIN)
+  async remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
+  }
 }
