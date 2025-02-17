@@ -1,51 +1,71 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import ListComponent from "../component/table/listComponent";
 
 export const DocumentManagement = () => {
   const [file, setFile] = useState(null);
   const [documents, setDocuments] = useState([]);
+  const headers = ["title", "createdDate", "modifiedDate", "size"];
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (e) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", e.target.files[0]);
     try {
-      const token = localStorage.getItem('token');
-      await axios.post('/api/documents/upload', formData, {
+      const token = localStorage.getItem("token");
+      await axios.post("http://localhost:3001/documents/upload", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert('File uploaded successfully!');
+      fetchDocuments();
+      alert("File uploaded successfully!");
     } catch (error) {
-      alert('Error uploading file: ' + error.response.data.message);
+      alert("Error uploading file: " + error.response.data.message);
     }
   };
 
   const fetchDocuments = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/documents', {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:3001/documents", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDocuments(response.data);
     } catch (error) {
-      alert('Error fetching documents: ' + error.response.data.message);
+      alert("Error fetching documents: " + error.response.data.message);
     }
+  };
+
+  const addDocument = () => {
+    inputRef.current.click();
   };
 
   return (
     <div>
       <h1>Document Management</h1>
-      <input type="file" onChange={handleFileChange} />
-      <button onClick={handleUpload}>Upload</button>
-      <button onClick={fetchDocuments}>Refresh Documents</button>
-      <ul>
-        {documents.map((doc) => (
-          <li key={doc._id}>{doc.name}</li>
-        ))}
-      </ul>
+      <form>
+        <input
+          type="file"
+          id="file"
+          ref={inputRef}
+          className="hidden"
+          onChange={handleUpload}
+        />
+      </form>
+      <ListComponent
+        items={documents}
+        title={"Documents"}
+        headers={headers}
+        addEntityCb={() => addDocument()}
+      />
     </div>
   );
 };

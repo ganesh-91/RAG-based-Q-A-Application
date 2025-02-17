@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import ListComponent from "../component/table/listComponent";
 
 export const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const headers = ["email", "role"];
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -34,35 +37,9 @@ export const UserManagement = () => {
   };
 
   return (
-    <div>
-      <h1>User Management</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user._id}>
-              <td>{user.email}</td>
-              <td>{user.role}</td>
-              <td>
-                <select
-                  value={user.role}
-                  onChange={(e) => updateUserRole(user._id, e.target.value)}
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <ListComponent items={users} title={"User"} headers={headers} />
+    </>
   );
 };
 

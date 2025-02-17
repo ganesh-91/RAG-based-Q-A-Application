@@ -1,26 +1,46 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import ListComponent from "../component/table/listComponent";
 
 export const IngestionManagement = () => {
-  const [status, setStatus] = useState('');
+  const [ingestion, setIngestion] = useState([]);
+  const headers = [
+    "id",
+    "fileName",
+    "filePath",
+    "ingestionDate",
+    "ingestionCompleted",
+  ];
 
-  const triggerIngestion = async () => {
+  useEffect(() => {
+    fetchIngestion();
+  }, []);
+
+  const fetchIngestion = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('/api/ingestion/trigger', {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setStatus(response.data.status);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:3001/ingestion",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setIngestion(response.data);
     } catch (error) {
-      alert('Error triggering ingestion: ' + error.response.data.message);
+      alert("Error triggering ingestion: " + error.response.data.message);
     }
   };
 
   return (
     <div>
       <h1>Ingestion Management</h1>
-      <button onClick={triggerIngestion}>Trigger Ingestion</button>
-      <p>Status: {status}</p>
+      <ListComponent
+        items={ingestion}
+        title={"ingestion"}
+        headers={headers}
+        addEntityCb={() => {}}
+      />
     </div>
   );
 };
