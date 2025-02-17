@@ -28,11 +28,10 @@ export class DocumentsController {
 
   @Post('upload')
   // @Roles(UserRole.ADMIN, UserRole.EDITOR)
-  @UseInterceptors(FileInterceptor('file', multerConfig)) // Use FileInterceptor with the multer config
+  @UseInterceptors(FileInterceptor('file', multerConfig))
   async uploadFile(
-    @UploadedFile() file: Express.Multer.File, // Access the uploaded file
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    // Save the file path and other details in the database
     return this.documentsService.create(file);
   }
 

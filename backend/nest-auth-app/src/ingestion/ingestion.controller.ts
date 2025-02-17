@@ -23,10 +23,7 @@ export class IngestionController {
   @Post('trigger')
   // @Roles(UserRole.ADMIN, UserRole.EDITOR)
   async triggerIngestion(@Body() { filePath }: { filePath: string }) {
-    // Send a message to Kafka instead of RabbitMQ
-    // console.log('[filePath]', filePath)
     await this.ingestionService.triggerIngestion(filePath);
-    // await this.kafkaService.triggerIngestion(filePath)
     return { message: 'Ingestion triggered successfully' };
   }
 }
