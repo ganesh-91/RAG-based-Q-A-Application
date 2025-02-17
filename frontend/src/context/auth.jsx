@@ -6,19 +6,19 @@ export const AuthContext = createContext(null);
 // Auth Provider Component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  //   useEffect(() => {
-  //     // Check if user is logged in on mount
-  //     checkAuth();
-  //   }, []);
+  useEffect(() => {
+    // Check if user is logged in on mount
+    checkAuth();
+  }, []);
 
   const checkAuth = async () => {
     try {
       const token = localStorage.getItem("token");
       if (token) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        const response = await axios.get("/api/auth/me");
+        const response = await axios.get("http://localhost:3001/auth/me");
         setUser(response.data);
       }
     } catch (error) {

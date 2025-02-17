@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 export const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -7,13 +7,13 @@ export const UserManagement = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('/api/admin/users', {
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://localhost:3001/users", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(response.data);
       } catch (error) {
-        alert('Error fetching users: ' + error.response.data.message);
+        alert("Error fetching users: " + error.response.data.message);
       }
     };
     fetchUsers();
@@ -21,15 +21,15 @@ export const UserManagement = () => {
 
   const updateUserRole = async (userId, role) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       await axios.put(
         `/api/admin/users/${userId}`,
         { role },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('Role updated successfully!');
+      alert("Role updated successfully!");
     } catch (error) {
-      alert('Error updating role: ' + error.response.data.message);
+      alert("Error updating role: " + error.response.data.message);
     }
   };
 

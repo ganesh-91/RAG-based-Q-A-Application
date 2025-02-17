@@ -24,7 +24,7 @@ function App() {
               <Route
                 path="user-management"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute role="ADMIN">
                     <UserManagement />
                   </ProtectedRoute>
                 }
@@ -32,7 +32,7 @@ function App() {
               <Route
                 path="document-management"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute role="ADMIN">
                     <DocumentManagement />
                   </ProtectedRoute>
                 }
@@ -40,7 +40,7 @@ function App() {
               <Route
                 path="ingestion-management"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute role="ADMIN">
                     <IngestionManagement />
                   </ProtectedRoute>
                 }
