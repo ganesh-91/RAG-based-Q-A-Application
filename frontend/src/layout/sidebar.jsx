@@ -24,10 +24,10 @@ export const Sidebar = ({ user, onLogout }) => {
               to="/dashboard/chat"
               className="p-3 bg-white rounded-lg shadow-sm flex w-full items-center justify-center"
             >
-              <div class="text mr-3 mt-1.5 font-semibold text-white dark:text-zinc-950 ">
+              <div class="text mr-3 mt-1.5 font-semibold text-zinc-950 ">
                 <AiIcon />
               </div>
-              <p class="mr-auto text-sm font-semibold text-white dark:text-zinc-950">
+              <p class="mr-auto text-sm font-semibold text-zinc-950">
                 AI Chat
               </p>
             </Link>
@@ -38,10 +38,10 @@ export const Sidebar = ({ user, onLogout }) => {
               to="/dashboard/user-management"
               className="p-3 bg-white rounded-lg shadow-sm flex w-full items-center justify-center"
             >
-              <div class="text mr-3 mt-1.5 font-semibold text-white dark:text-zinc-950 ">
+              <div class="text mr-3 mt-1.5 font-semibold text-zinc-950 ">
                 <UserIcon />
               </div>
-              <p class="mr-auto text-sm font-semibold text-white dark:text-zinc-950">
+              <p class="mr-auto text-sm font-semibold text-zinc-950">
                 User Management
               </p>
             </Link>
@@ -52,10 +52,10 @@ export const Sidebar = ({ user, onLogout }) => {
               to="/dashboard/document-management"
               className="p-3 bg-white rounded-lg shadow-sm flex w-full items-center justify-center"
             >
-              <div class="text mr-3 mt-1.5 font-semibold text-white dark:text-zinc-950 ">
+              <div class="text mr-3 mt-1.5 font-semibold text-zinc-950 ">
                 <DocsIcon />
               </div>
-              <p class="mr-auto text-sm font-semibold text-white dark:text-zinc-950">
+              <p class="mr-auto text-sm font-semibold text-zinc-950">
                 Document Management
               </p>
             </Link>
@@ -66,10 +66,10 @@ export const Sidebar = ({ user, onLogout }) => {
               to="/dashboard/ingestion-management"
               className="p-3 bg-white rounded-lg shadow-sm flex w-full items-center justify-center"
             >
-              <div class="text mr-3 mt-1.5 font-semibold text-white dark:text-zinc-950 ">
+              <div class="text mr-3 mt-1.5 font-semibold text-zinc-950 ">
                 <IngestionIcon />
               </div>
-              <p class="mr-auto text-sm font-semibold text-white dark:text-zinc-950">
+              <p class="mr-auto text-sm font-semibold text-zinc-950">
                 Ingestion Management
               </p>
             </Link>

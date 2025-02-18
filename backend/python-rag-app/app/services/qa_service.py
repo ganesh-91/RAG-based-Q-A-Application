@@ -4,7 +4,6 @@ from langchain.chains import RetrievalQA
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
 from app.config.settings import settings
-from app.services.vectorstore_service import get_vectorstore
 from langchain.prompts import PromptTemplate
 
 logger = logging.getLogger(__name__)

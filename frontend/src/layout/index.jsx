@@ -5,7 +5,6 @@ import { AuthContext } from "../context/auth";
 
 export const Layout = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
-  console.log("[test]");
   return (
     <div className="w-full h-screen flex">
       <Sidebar user={user} onLogout={logout} />

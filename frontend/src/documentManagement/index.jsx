@@ -48,6 +48,21 @@ export const DocumentManagement = () => {
     inputRef.current.click();
   };
 
+  const ingestDoc = async (item) => {
+    const file = {
+      fileName: item.title,
+      filePath: item.filePath
+    }
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post("http://localhost:3001/documents/ingest", { file: file }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (error) {
+      alert("Error uploading file: " + error.response.data.message);
+    }
+  };
+
   return (
     <div>
       <h1>Document Management</h1>
@@ -65,6 +80,8 @@ export const DocumentManagement = () => {
         title={"Documents"}
         headers={headers}
         addEntityCb={() => addDocument()}
+        actionCb={(item) => ingestDoc(item)}
+        isDocumentPage={true}
       />
     </div>
   );

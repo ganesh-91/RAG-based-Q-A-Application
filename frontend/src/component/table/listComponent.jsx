@@ -3,7 +3,7 @@ import axios from "axios";
 import TableRow from "./tableRow";
 import Pagination from "./pagination";
 
-export const ListComponent = ({ items, title, headers, addEntityCb }) => {
+export const ListComponent = ({ items, title, headers, addEntityCb = () => { }, actionCb = () => { }, isDocumentPage = false }) => {
   return (
     <div class="relative flex flex-col w-full h-full text-slate-700 bg-white shadow-md rounded-xl bg-clip-border">
       <div class="relative mx-4 mt-4 overflow-hidden text-slate-700 bg-white rounded-none bg-clip-border">
@@ -55,22 +55,28 @@ export const ListComponent = ({ items, title, headers, addEntityCb }) => {
             {items.map((item) => (
               <tr>
                 {headers.map((header) => (
-                  <td class="p-4 border-b border-slate-200">
-                    <div class="flex flex-col">
+                  <td class="p-4 border-b border-slate-200 max-w-40">
+                    <div class="flex flex-col overflow-hidden">
                       <p class="text-sm font-semibold text-slate-700">
-                        {item[header]}
+                        {
+                          typeof item[header] === 'boolean'
+                            ? (item[header] ? 'Completed' : 'In Progress')
+                            : item[header]
+                        }
+
                       </p>
                     </div>
                   </td>
                 ))}
-                <td class="p-4 border-b border-slate-200">
+                {isDocumentPage && <td class="p-4 border-b border-slate-200">
                   <button
+                    onClick={() => actionCb(item)}
                     class="border-red-500 border text-red-500 p-2 select-none rounded text-center align-middle font-sans text-xs font-medium uppercase  transition-all disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                     type="button"
                   >
-                    Delete
+                    Ingest
                   </button>
-                </td>
+                </td>}
               </tr>
             ))}
           </tbody>
