@@ -9,7 +9,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
 
 from app.config.settings import settings
-from app.services.vectorstore_service import initialize_vectorstore
 
 logger = logging.getLogger(__name__)
 

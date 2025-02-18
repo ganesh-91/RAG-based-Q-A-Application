@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # Kafka Service
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+    volumes:
+      - kafka_data:/bitnami/kafka
+
+  # Zookeeper (Required for Kafka)
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    volumes:
+      - zookeeper_data:/bitnami/zookeeper
+
+  # Python Backend (Document Ingestion and RAG-driven Q&A)
+  python-backend:
+    build: ./backend/python-rag-app
+    container_name: python-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      - kafka
+      - zookeeper
+    # Add health check to ensure the service is running
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS/NodeJS Backend (User Management and Document Management)
+  nestjs-backend:
+    build: ./backend/nest-auth-app
+    container_name: nestjs-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=1234
+      - DATABASE_NAME=rag_db
+    depends_on:
+      - kafka
+      - zookeeper
+      - postgres
+    # Add health check to ensure the service is running
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # React Frontend (User Interface for Management and Q&A)
+  react-frontend:
+    build: ./frontend
+    container_name: react-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nestjs-backend
+      - python-backend
+
+  # PostgreSQL Database (Optional, for NestJS/NodeJS Backend)
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: rag_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  kafka_data:
+  zookeeper_data:
+  postgres_data:

@@ -24,6 +24,10 @@ app.add_middleware(
 app.include_router(documents_router, prefix="/api")
 app.include_router(qa_router, prefix="/api")
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "ok"}  # Or return more detailed health information
 
 # Initialize Kafka service
 kafka_service = KafkaService()

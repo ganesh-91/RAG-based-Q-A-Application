@@ -10,6 +10,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { KafkaService } from './utils/kafka';
 import { Ingestion } from './ingestion/entities/ingestion.entity';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -34,5 +35,6 @@ import { Ingestion } from './ingestion/entities/ingestion.entity';
     forwardRef(() => IngestionModule),
   ],
   providers: [KafkaService],
+  controllers: [HealthController],
 })
 export class AppModule {}
