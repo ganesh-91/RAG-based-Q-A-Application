@@ -1,12 +1,14 @@
-# config/settings.py
+import os
+from pydantic import BaseSettings
 
-class Settings:
-    VECTORSTORE_PATH = "vectorstore.pkl"
-    POSTGRES_URL="postgresql+psycopg2://postgres:1234@localhost:5432/rag_db"
-    RETRIEVER_TOP_K = 5
-    RETRIEVER_SCORE_THRESHOLD = 0.7
-    KAFKA_BROKER = "localhost:9092"  # Kafka broker address
-    KAFKA_INGEST_TOPIC = "ingestion-trigger"  # Topic for document ingestion requests
-    KAFKA_COMPLETED_TOPIC = "ingestion-completed"  # Topic for ingestion completion messages
+class Settings(BaseSettings):
+    POSTGRES_URL: str = os.getenv("POSTGRES_URL", "postgresql+psycopg2://postgres:1234@localhost:5432/rag_db")
+
+    KAFKA_BROKER: str = os.getenv("KAFKA_BROKER", "localhost:9092")
+    KAFKA_INGEST_TOPIC: str = os.getenv("KAFKA_INGEST_TOPIC", "ingestion-trigger")
+    KAFKA_COMPLETED_TOPIC: str = os.getenv("KAFKA_COMPLETED_TOPIC", "ingestion-completed")
+
+    class Config:
+        env_file = ".env"
 
 settings = Settings()

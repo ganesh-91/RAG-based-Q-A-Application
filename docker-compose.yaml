@@ -39,6 +39,11 @@ services:
       - "8000:8000"
     environment:
       - KAFKA_BROKER=kafka:9092
+      - DATABASE_URL=postgresql+psycopg2://postgres:1234@postgres:5432/rag_db
+      - HUGGINGFACEHUB_API_TOKEN= # enter your hugginface key her
+      - KAFKA_BROKER=kafka:9092
+      - KAFKA_INGEST_TOPIC=ingestion-trigger
+      - KAFKA_COMPLETED_TOPIC=ingestion-completed
     depends_on:
       - kafka
       - zookeeper
@@ -95,6 +100,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d rag_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   kafka_data:
