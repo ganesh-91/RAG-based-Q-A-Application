@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -31,7 +31,7 @@ import { Ingestion } from './ingestion/entities/ingestion.entity';
     UsersModule,
     AuthModule,
     DocumentsModule,
-    IngestionModule,
+    forwardRef(() => IngestionModule),
   ],
   providers: [KafkaService],
 })

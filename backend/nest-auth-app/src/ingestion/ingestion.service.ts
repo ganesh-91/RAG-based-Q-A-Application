@@ -1,34 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { KafkaService } from 'src/utils/kafka';
 import { Ingestion } from './entities/ingestion.entity';
 import { CreateIngestionDto } from './dto/create-ingestion.dto';
-import * as path from 'path';
 
 @Injectable()
 export class IngestionService {
   constructor(
     @InjectRepository(Ingestion)
     private ingestionRepository: Repository<Ingestion>,
-    private kafkaService: KafkaService, // Use KafkaService instead of RabbitMQService
-  ) {}
+    @Inject(forwardRef(() => KafkaService)) // Use forwardRef to resolve circular dependency
+    private kafkaService: KafkaService,
+  ) { }
 
   async create(ingestion: CreateIngestionDto): Promise<Ingestion> {
     const user = this.ingestionRepository.create(ingestion);
     return this.ingestionRepository.save(ingestion);
   }
 
-  async triggerIngestion(filePath: string) {
-    console.log(`Ingesting document from path: ${filePath}`);
-    await this.kafkaService.triggerIngestion(filePath);
-    const fileName = path.basename(filePath);
-    await this.create({
-      fileName: fileName,
-      filePath: filePath,
-      ingestionDate: new Date(),
+  async triggerIngestion(file: CreateIngestionDto) {
+    await this.kafkaService.triggerIngestion(file.filePath);
+    const ingestion = await this.ingestionRepository.create({
+      fileName: file.fileName,
+      filePath: file.filePath,
       ingestionCompleted: false,
+      ingestionDate: new Date()
     });
+    await this.ingestionRepository.save(ingestion);
 
     return { message: 'Ingestion triggered successfully' };
   }
@@ -53,9 +52,4 @@ export class IngestionService {
     return this.ingestionRepository.find();
   }
 
-  // async triggerIngestionStatus(filename: string) {
-  //   console.log(`Ingesting document from path: ${filename}`);
-  //   await this.kafkaService.triggerIngestionUpdate(filename);
-  //   return { message: 'Ingestion triggered successfully' };
-  // }
 }

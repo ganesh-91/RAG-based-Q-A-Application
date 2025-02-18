@@ -20,6 +20,7 @@ import { UserRole } from '../shared/constants';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { multerConfig } from 'src/config/multer.config';
+import { CreateIngestionDto } from 'src/ingestion/dto/create-ingestion.dto';
 
 @Controller('documents')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -27,7 +28,7 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) { }
 
   @Post('upload')
-  // @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @UseInterceptors(FileInterceptor('file', multerConfig))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
@@ -39,6 +40,13 @@ export class DocumentsController {
   @Roles(UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER)
   async findAll() {
     return this.documentsService.findAll();
+  }
+
+  @Post('ingest')
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  async ingestDocument(@Body('file') file: CreateIngestionDto) {
+    await this.documentsService.ingestDocument(file);
+    return { message: 'Ingestion triggered successfully' };
   }
 
   @Get(':id')

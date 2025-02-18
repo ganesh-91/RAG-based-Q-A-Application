@@ -6,6 +6,9 @@ import { CreateDocumentDto, DocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import * as path from 'path';
 import * as fs from 'fs';
+import { Ingestion } from 'src/ingestion/entities/ingestion.entity';
+import { CreateIngestionDto } from 'src/ingestion/dto/create-ingestion.dto';
+import { IngestionService } from 'src/ingestion/ingestion.service';
 
 @Injectable()
 export class DocumentsService {
@@ -13,17 +16,19 @@ export class DocumentsService {
   constructor(
     @InjectRepository(Document)
     private documentsRepository: Repository<Document>,
+    @InjectRepository(Ingestion)
+    private ingestionRepository: Repository<Ingestion>,
+    private readonly ingestionService: IngestionService,
   ) {
     this.filePath = path.join(__dirname, '../../../upload');
   }
 
   async create(file: Express.Multer.File): Promise<null> {
-    console.log('[file]', file);
-    // const document = this.documentsRepository.create({
-    //   filePath: file.path, // Save the file path
-    //   title: file.filename,
-    // });
     return null;
+  }
+
+  async ingestDocument(file: CreateIngestionDto) {
+    return await this.ingestionService.triggerIngestion(file);
   }
 
   async findAll(): Promise<(DocumentDto | undefined)[]> {
