@@ -62,10 +62,12 @@ class KafkaService:
                 asyncio.run(document_service.ingest_docs(filepath, filename))
 
                 # Send ingestion completed message
+                # sad
+                logger.info(f"Ingestion message triigered {filename}")
                 self.producer.produce(
                     settings.KAFKA_COMPLETED_TOPIC,
-                    key=filename,
-                    value=f"Ingestion completed for {filename}"
+                    key='ingestion-completed',
+                    value=filename
                 )
                 logger.info(f"[KafkaService]Received document for ingestion: {filename}")
                 self.producer.flush()  # Ensure the message is sent
